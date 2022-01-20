@@ -291,8 +291,10 @@ std::shared_ptr<Node> Handler::readV4Property(int propertyType, int propertyID) 
 		return std::make_shared<TheExprNode>(Lingo::getName(Lingo::moviePropertyNames07, propertyID));
 	case 0x08: // movie property
 		return std::make_shared<TheExprNode>(Lingo::getName(Lingo::moviePropertyNames08, propertyID));
+	case 0x0a: // chunk of cast
 	case 0x09: // generic cast member
 	case 0x0b: // field
+	case 0x0c: // chunk of field
 	case 0x0d: // digital video
 		{
 			auto propName = Lingo::getName(Lingo::memberPropertyNames, propertyID);
@@ -302,10 +304,16 @@ std::shared_ptr<Node> Handler::readV4Property(int propertyType, int propertyID) 
 			}
 			auto memberID = pop();
 			std::string prefix;
-			if (propertyType == 0x0b) {
-				prefix = "field";
-			} else {
-				prefix = (script->dir->version >= 500) ? "member" : "cast";
+			switch(propertyType) {
+				case 0x0a:
+				case 0x0c:
+					prefix = "chunk";
+					break;
+				case 0x0b:
+					prefix = "field";
+					break;
+				default:
+					prefix = (script->dir->version >= 500) ? "member" : "cast";
 			}
 			auto member = std::make_shared<MemberExprNode>(prefix, std::move(memberID), std::move(castID));
 			return std::make_shared<ThePropExprNode>(std::move(member), propName);
